@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UV Laboral Esmax — Pronóstico Radiación UV</title>
+<link rel="icon" href="https://esmax.azurewebsites.net/wp-content/uploads/logo-esmax-color-horizontal.svg" type="image/svg+xml">
+<style>
+  :root{ --navy:#001E82;--azul:#0F5AB4;--azulm:#0A78BE;--cian:#1E96D7;--cian2:#28AAE1;--verd:#28A082;--verd2:#32AF7D;--verd3:#3CB400;
+    --bajo:#22a351;--moderado:#eab308;--alto:#e87b0c;--muy:#cf2f2f;--extremo:#8e2bb8;--gris:#F4F6F8;--txt:#242a33; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Roboto,Arial,sans-serif;background:var(--gris);color:var(--txt);}
+  .bar{background:linear-gradient(90deg,var(--navy),var(--azul));padding:14px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.18);position:sticky;top:0;z-index:5}
+  .bar img{height:38px}
+  .bar h1{color:#fff;font-size:18px;font-weight:700;flex:1;line-height:1.1}
+  .bar .ges{font-size:10.5px;color:#cfe0f5;background:rgba(255,255,255,.14);padding:4px 10px;border-radius:20px;white-space:nowrap}
+  .wrap{max-width:680px;margin:0 auto;padding:18px 16px 60px}
+  .card{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.07);padding:20px;margin-bottom:16px}
+  .lbl{font-size:11.5px;letter-spacing:.7px;text-transform:uppercase;color:#6b7280;font-weight:700;margin-bottom:7px}
+  .ubica-btn{width:100%;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:700;cursor:pointer;
+    background:linear-gradient(90deg,var(--azul),var(--cian));color:#fff;box-shadow:0 3px 10px rgba(15,90,180,.25);display:flex;align-items:center;justify-content:center;gap:8px}
+  .ubica-btn:disabled{opacity:.6;cursor:wait}
+  .rstripe{background:#eef2fb;border:1px solid #d7e2f5;border-radius:9px;padding:10px 12px;font-size:13px;color:#3a4a6b;margin-top:10px}
+  .uv{width:100%;text-align:left;position:relative;overflow:hidden}
+  .uv .big{font-size:60px;font-weight:800;line-height:1}
+  .uv .nivel{font-size:22px;font-weight:700;margin-top:2px}
+  .uv .rango{font-size:13px;opacity:.93;margin-top:4px}
+  .uv .palabra{font-size:13.5px;opacity:.95;margin-top:8px;line-height:1.4}
+  .color-card{border-radius:14px;padding:20px;color:#fff}
+  .fila2{display:flex;gap:12px}
+  .fila2>div{flex:1;border-radius:12px;padding:14px;color:#fff}
+  .obs{background:linear-gradient(135deg,var(--azulm),var(--cian))}
+  .prn{background:linear-gradient(135deg,var(--verd),var(--verd2))}
+  .minit{font-size:11px;letter-spacing:.5px;text-transform:uppercase;opacity:.9;margin-bottom:4px}
+  .val-big{font-size:30px;font-weight:800}
+  .riesgo{font-size:14px;font-weight:600}
+  .med{list-style:none;margin-top:4px}
+  .med li{padding:8px 0 8px 26px;position:relative;font-size:14px;line-height:1.4}
+  .med li::before{content:"✔";position:absolute;left:0;color:var(--verd2);font-weight:800}
+  .foot{text-align:center;font-size:11.5px;color:#9aa1ab;margin-top:6px;line-height:1.6}
+  .badge-mejor{display:inline-block;background:#eafaf1;border:1px solid #b9e6cc;color:#1f7a43;border-radius:20px;padding:3px 11px;font-size:12px;margin-top:8px}
+  .navcard{display:flex;gap:8px}
+  .navcard button{flex:1;border:2px solid #dfe3ea;background:#fff;border-radius:11px;padding:11px;font-size:13px;font-weight:600;color:var(--azul);cursor:pointer}
+  .navcard button.act{border-color:var(--azul);background:#eef4fd;color:var(--navy)}
+  #estado{font-size:12px;color:#6b7280;text-align:center;padding:8px;border-radius:8px;margin-top:6px;background:#fff}
+  select{width:100%;padding:12px;border:2px solid #dfe3ea;border-radius:10px;font-size:15px;background:#fff}
+  .hidden{display:none}
+  .est-lista{max-height:330px;overflow:auto;border:1px solid #eceff3;border-radius:10px}
+  .est-row{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid #f0f2f5;cursor:pointer}
+  .est-row:hover{background:#f5f8fd}
+  .est-row .n{font-size:14px;font-weight:600}
+  .est-row .v{font-size:14px;font-weight:700;padding:4px 10px;border-radius:6px;color:#fff;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <img src="https://esmax.azurewebsites.net/wp-content/uploads/logo-esmax-color-horizontal.svg" alt="Esmax">
+  <h1>UV Laboral<br><span style="font-weight:400;font-size:12px">Gestión de riesgo por radiación solar</span></h1>
+  <span class="ges">GesstIA · SST</span>
+</header>
+
+<div class="wrap">
+  <!-- Elección de vista -->
+  <div class="card">
+    <div class="navcard">
+      <button id="btnGeo" class="act" onclick="mostrarVista('geo')">📍 Mi ubicación</button>
+      <button id="btnLista" onclick="mostrarVista('lista')">🗺️ Todas las estaciones</button>
+    </div>
+    <div style="height:10px"></div>
+    <div class="lbl">¿Cómo quieres consultar el pronóstico UV?</div>
+  </div>
+
+  <!-- VISTA GEOLOCALIZACIÓN -->
+  <div id="vistaGeo">
+    <div class="card">
+      <button class="ubica-btn" id="btnUbicar" onclick="usarUbicacion()">
+        📍 Usar mi ubicación (geolocalización)
+      </button>
+      <div class="rstripe hidden" id="geoInfo">…</div>
+    </div>
+
+    <div id="resultadoGeo" class="hidden">
+      <div class="card">
+        <div class="lbl" id="lblEstacionSgo">Estación DMC más cercana</div>
+        <div class="color-card" style="background:linear-gradient(135deg,var(--navy),var(--azul))">
+          <div id="geoNombre" style="font-size:17px;font-weight:700">—</div>
+          <div id="geoRegion" style="font-size:13px;opacity:.85">—</div>
+        </div>
+      </div>
+
+      <div class="card" id="geoResumenCard">
+        <div class="lbl">☀️ Pronóstico índice UV (DMC)</div>
+        <div class="fila2">
+          <div class="obs"><div class="minit">Observado hoy</div><div class="val-big" id="gObsVal">—</div><div class="riesgo" id="gObsRiesgo">—</div></div>
+          <div class="prn"><div class="minit">Pronóstico mañana</div><div class="val-big" id="gPronVal">—</div><div class="riesgo" id="gPronRiesgo">—</div></div>
+        </div>
+        <div id="gRecomend" style="font-size:13px;color:#3a4a6b;margin-top:12px;line-height:1.5"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA LISTA -->
+  <div id="vistaLista" class="hidden">
+    <div class="card">
+      <div class="lbl">🔎 Elige una estación DMC (pronóstico visible)</div>
+      <div class="est-lista" id="listaEstaciones"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    📄 Fuente: <b>Dirección Meteorológica de Chile (DMC)</b> — radiación ultravioleta.<br>
+    Obligación protección solar D.S. 594 Art. 109, del 1 sept al 31 marzo, 10:00–17:00.<br>
+    Recurso preventivo de GesstIA para <b>Esmax</b>. Se pide citar a la DMC como fuente.
+  </div>
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+var WORKER = 'https://dmc-uv-proxy.robinson-armijo.workers.dev';   // proxy CORS + transformador DMC
+var PALETA_NIVEL = { 'Bajo':'#22a351', 'Moderado':'#eab308', 'Alto':'#e87b0c', 'Muy alto':'#cf2f2f', 'Extremo':'#8e2bb8', '':'' };
+
+var MEDIDAS = {
+  'Bajo':   ['Sin medidas especiales de protección. Exposición normal.'],
+  'Moderado':['Usar polera manga larga y pantalón','Sombrero o legionario con cubrenuca','Protector solar FPS 30+ reaplicar cada 2 h','Lentes de sol con filtro UV','Reducir exposición 12:00–16:00'],
+  'Alto':    ['Protector solar FPS 50+ reaplicar cada 2 h','Ropa de manga larga y colores claros','Sombrero de ala ancha y lentes UV','Hidratación constante','Rotar puestos en sombra/hidratación'],
+  'Muy alto':['Evitar exposición directa 11:00–17:00','EPP completo de radiación UV','Ropa con protección UPF 50+','Pausas en sombra obligatorias','Supervisión del prevencionista'],
+  'Extremo': ['Suspender faenas al aire libre si es factible','Si no: EPP total + turnos cortos','Mínima exposición posible','Doble hidratación + control médico','Aviso inmediato a jefatura/gerencia']
+};
+
+var geoData = { lat:null, lon:null, estacion:null };   // candidatos cargados
+var todos = [];
+
+function $(id){return document.getElementById(id);}
+function ul(a){a.classList.add('hidden');}function sh(a){a.classList.remove('hidden');}
+
+function mostrarVista(v){
+  if(v==='geo'){ $('btnGeo').classList.add('act');$('btnLista').classList.remove('act');sh($('vistaGeo'));ul($('vistaLista')); }
+  else{ $('btnLista').classList.add('act');$('btnGeo').classList.remove('act');ul($('vistaGeo'));sh($('vistaLista')); if(!todos.length) cargarTodo(); }
+}
+
+/* Cargar catálogo + pronóstico una vez */
+function cargarTodo(){ cargarCentros(); cargarPronostico(); }
+
+/* ---------- CENTROS (catálogo 26 estaciones) ---------- */
+function cargarCentros(){
+  fetch(WORKER+'/api/uv/centros').then(r=>r.json()).then(d=>{
+    window.CENTROS = d.centros || [];
+    pintarLista();
+  }).catch(()=>{ $('listaEstaciones').innerHTML='<div style="padding:14px;color:#b00">No se pudo cargar catálogo.</div>'; });
+}
+
+/* ---------- PRONOSTICO (26 estaciones, obs+pron) ---------- */
+function cargarPronostico(){
+  fetch(WORKER+'/api/uv/pronostico').then(r=>r.json()).then(d=>{
+    window.PRONO = {};
+    (d.estaciones||[]).forEach(e=>{ window.PRONO[e.code]=e; });
+    if(geoData.estacion){ mostrarEstacion(geoData.estacion.code); }
+    pintarLista();                     // refresca si lista visible
+  }).catch(()=>{});
+}
+
+/* Pintar lista completa de estaciones con su pronóstico */
+function pintarLista(){
+  var cs = window.CENTROS, pr = window.PRONO;
+  var cont = $('listaEstaciones'); if(!cs){return;}
+  cont.innerHTML='';
+  cs.forEach(c=>{
+    var p = pr && pr[c.code];
+    var pron = p && p.pron ? p.pron : null;
+    var label = pron ? (pron.indice+' · '+pron.riesgo) : '—';
+    var color = pron && PALETA_NIVEL[pron.riesgo] ? PALETA_NIVEL[pron.riesgo] : '#9aa1ab';
+    var row=document.createElement('div'); row.className='est-row';
+    row.innerHTML='<div><div class="n">'+c.nombre+'</div><div style="font-size:11px;color:#8a92a3">'+c.region+' · code '+c.code+'</div></div>'
+        +'<div class="v" style="background:'+color+'">'+label+'</div>';
+    row.onclick=function(){ geoData.estacion=c; mostrarVista('geo'); if(pr&&pr[c.code]) mostrarEstacion(c.code); else { $('geoInfo').textContent='Selecciona: '+c.nombre; sh($('geoInfo'));} };
+    cont.appendChild(row);
+  });
+}
+
+/* ---------- GEOLOCALIZACIÓN ---------- */
+function usarUbicacion(){
+  if(!navigator.geolocation){ alert('Tu navegador no soporta geolocalización.'); return; }
+  var btn=$('btnUbicar'); btn.disabled=true; btn.textContent='⏳ Obteniendo tu ubicación…';
+  navigator.geolocation.getCurrentPosition(okGeo, errGeo, {enableHighAccuracy:false, timeout:12000});
+}
+function errGeo(e){ 
+  var btn=$('btnUbicar'); btn.disabled=false; btn.textContent='📍 Usar mi ubicación (geolocalización)';
+  $('geoInfo').textContent='⚠ No se pudo obtener ubicación ('+ (e&&e.message||'desconocido') +'). Elige una estación manualmente arriba.';
+  sh($('geoInfo')); 
+}
+function okGeo(pos){
+  var btn=$('btnUbicar'); btn.disabled=false; btn.textContent='📍 Usar mi ubicación (geolocalización)';
+  geoData.lat=pos.coords.latitude; geoData.lon=pos.coords.longitude;
+  var cs=window.CENTROS;
+  if(!cs){ $('geoInfo').textContent='Cargando catálogo…'; sh($('geoInfo')); geoData.latPend=true; setTimeout(usarUbicacion,900); return; }
+  // estación más cercana
+  var mejor=null, dmin=1e12;
+  cs.forEach(c=>{
+    var d=Math.hypot(c.lat-geoData.lat, c.lon-geoData.lon);
+    if(d<dmin){dmin=d;mejor=c;}
+  });
+  if(mejor){ geoData.estacion=mejor;
+    $('geoInfo').innerHTML='📍 Tu ubicación: <b>'+geoData.lat.toFixed(3)+', '+geoData.lon.toFixed(3)+'</b><br>Estación DMC más cercana: <b>'+mejor.nombre+'</b> ('+mejor.region+').';
+    sh($('geoInfo'));
+    sh($('resultadoGeo'));
+    // mostrar si ya hay pronostico
+    if(window.PRONO && window.PRONO[mejor.code]) mostrarEstacion(mejor.code);
+    else { verificarPronostico(mejor); }
+  }
+}
+function verificarPronostico(est){
+  // reintenta mostrar una vez pronóstico cargado
+  var it=0; var t=setInterval(function(){ it++;
+    if(window.PRONO&&window.PRONO[est.code]){ clearInterval(t); mostrarEstacion(est.code); }
+    else if(it>20){ clearInterval(t); $('resultadoGeo').innerHTML='<div class="card">No se pudo cargar el pronóstico DMC. Reintenta en un momento.</div>'; }
+  },500);
+}
+
+/* ---------- MOSTRAR RESULTADO DE UNA ESTACIÓN ---------- */
+function mostrarEstacion(code){
+  var c = (window.CENTROS||[]).find(x=>x.code===code);
+  var p = window.PRONO[code];
+  $('resultadoGeo').classList.remove('hidden');
+  sh($('resultadoGeo'));
+  $('geoNombre').textContent = c?c.nombre:(p?p.nombre:'Estación DMC');
+  $('geoRegion').textContent = (c?c.region:'')+' · Código '+code;
+  if(p){
+    var obs=p.obs, pr=p.pron;
+    $('gObsVal').textContent=(obs&&obs.indice)?obs.indice:'—';
+    $('gObsRiesgo').textContent=(obs&&obs.riesgo)?obs.riesgo:'sin dato';
+    $('gPronVal').textContent=(pr&&pr.indice)?pr.indice:'—';
+    $('gPronRiesgo').textContent=(pr&&pr.riesgo)?pr.riesgo:'sin dato';
+    var nivel=(pr&&pr.riesgo)||'';
+    var rec=p.recomendacion || (MEDIDAS[nivel]?MEDIDAS[nivel].join(' · '):'');
+    // medidas preventivas formateadas
+    var mds=MEDIDAS[nivel]||[];
+    $('gRecomend').innerHTML='<div style="font-weight:700;margin-bottom:6px">🛡️ Medidas preventivas ('+ (nivel||'—') +'):</div>'
+      +'<ul class="med">'+(mds.length?mds.map(m=>'<li>'+m+'</li>').join(''):'<li>Sin medidas especiales.</li>')+'</ul>'
+      +(p.recomendacion?'<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #ddd;color:#5a6472;font-size:12.5px"><b>Recomendación DMC:</b> '+p.recomendacion+'</div>':'');
+  }
+}
+
+/* init */
+cargarTodo();
+</script>
+</body>
+</html>
