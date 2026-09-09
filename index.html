@@ -139,25 +139,20 @@ function mostrarVista(v){
   else{ $('btnLista').classList.add('act');$('btnGeo').classList.remove('act');ul($('vistaGeo'));sh($('vistaLista')); if(!todos.length) cargarTodo(); }
 }
 
-/* Cargar catálogo + pronóstico una vez */
-function cargarTodo(){ cargarCentros(); cargarPronostico(); }
+/* Cargar pronóstico; de él derivamos también el catálogo de estaciones (trae region/lat/lon) */
+function cargarTodo(){ cargarPronostico(); }
 
-/* ---------- CENTROS (catálogo 26 estaciones) ---------- */
-function cargarCentros(){
-  fetch(WORKER+'/api/uv/centros').then(r=>r.json()).then(d=>{
-    window.CENTROS = d.centros || [];
-    pintarLista();
-  }).catch(()=>{ $('listaEstaciones').innerHTML='<div style="padding:14px;color:#b00">No se pudo cargar catálogo.</div>'; });
-}
-
-/* ---------- PRONOSTICO (26 estaciones, obs+pron) ---------- */
+/* ---------- PRONOSTICO (26 estaciones, obs+pron+geo) ---------- */
 function cargarPronostico(){
   fetch(WORKER+'/api/uv/pronostico').then(r=>r.json()).then(d=>{
+    var arr=d.estaciones||[];
     window.PRONO = {};
-    (d.estaciones||[]).forEach(e=>{ window.PRONO[e.code]=e; });
+    // También construir catálogo desde los mismos datos
+    window.CENTROS = arr.map(function(e){ return { code:e.code, nombre:e.nombre.trim(), region:e.region||'', lat:e.lat, lon:e.lon, _p:e }; });
+    arr.forEach(function(e){ window.PRONO[e.code]=e; });
     if(geoData.estacion){ mostrarEstacion(geoData.estacion.code); }
-    pintarLista();                     // refresca si lista visible
-  }).catch(()=>{});
+    pintarLista();
+  }).catch(function(){ $('estado').textContent='⚠ No se pudieron cargar datos DMC.'; $('listaEstaciones').innerHTML='<div style="padding:14px;color:#b00">No se pudo conectar con la DMC.</div>'; });
 }
 
 /* Pintar lista completa de estaciones con su pronóstico */
