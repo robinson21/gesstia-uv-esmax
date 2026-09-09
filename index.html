@@ -49,6 +49,11 @@
   .est-row{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid #f0f2f5;cursor:pointer}
   .est-row:hover{background:#f5f8fd}
   .est-row .n{font-size:14px;font-weight:600}
+  .rec-box{position:relative}
+  .rec-txt{font-size:13px;color:#5a6472;line-height:1.55;white-space:pre-line;overflow-wrap:break-word}
+  .rec-txt.clamped{max-height:96px;overflow:hidden;mask-image:linear-gradient(#000 60%,transparent)}
+  .rec-toggle{margin-top:8px;display:inline-block;border:none;background:#eef2fb;color:var(--azul);font-weight:700;font-size:12.5px;
+    padding:7px 14px;border-radius:20px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.06)}
   .est-row .v{font-size:14px;font-weight:700;padding:4px 10px;border-radius:6px;color:#fff;white-space:nowrap}
 </style>
 </head>
@@ -230,10 +235,37 @@ function mostrarEstacion(code){
     var rec=p.recomendacion || (MEDIDAS[nivel]?MEDIDAS[nivel].join(' · '):'');
     // medidas preventivas formateadas
     var mds=MEDIDAS[nivel]||[];
+    var recHtml='';
+    if(p.recomendacion){
+      var r=p.recomendacion;
+      recHtml='<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #ddd">'
+        +'<b style="color:#3a4a6b;font-size:12.5px">📄 Recomendación DMC:</b>'
+        +'<div class="rec-box"><div class="rec-txt clamped" id="recTxt">'+r+'</div>'
+        +'<button class="rec-toggle" id="recBtn" onclick="toggleRec()">Ver mensaje completo ▾</button></div></div>';
+    }
     $('gRecomend').innerHTML='<div style="font-weight:700;margin-bottom:6px">🛡️ Medidas preventivas ('+ (nivel||'—') +'):</div>'
       +'<ul class="med">'+(mds.length?mds.map(m=>'<li>'+m+'</li>').join(''):'<li>Sin medidas especiales.</li>')+'</ul>'
-      +(p.recomendacion?'<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #ddd;color:#5a6472;font-size:12.5px"><b>Recomendación DMC:</b> '+p.recomendacion+'</div>':'');
+      +recHtml;
+    altoRec();
   }
+}
+// Si el texto de la recomendación es corto, oculta el botón "Ver más"
+function altoRec(){
+  var t=document.getElementById('recTxt'); var b=document.getElementById('recBtn');
+  if(!t||!b)return;
+  // si no se desborda (scrollHeight <= cliente de 96px), ocultar botón
+  t.style.maxHeight='none';
+  var full=t.scrollHeight;
+  t.style.maxHeight='96px';
+  t.classList.add('clamped'); b.style.display='inline-block';
+  b.textContent='Ver mensaje completo ▾';
+}
+function toggleRec(){
+  var t=document.getElementById('recTxt'); var b=document.getElementById('recBtn');
+  if(!t||!b)return;
+  var open=t.classList.toggle('clamped');
+  b.textContent= open ? 'Ver mensaje completo ▾' : 'Ver menos ▴';
+  if(!open){ t.style.removeProperty('max-height'); t.scrollIntoView({behavior:'smooth',block:'nearest'}); }
 }
 
 /* init */
