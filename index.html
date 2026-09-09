@@ -316,7 +316,7 @@ function mostrarEstacion(code,keepScroll){
     '<ul class="med">'+(medidas.length?medidas.map(m=>'<li>'+m+'</li>').join(''):'<li>Sin medidas especiales.</li>')+'</ul>'+recHtml+'</div>'+
     '<div class="mini-grid">'+
       '<div class="mini'+(grande.label==='Pronóstico'?' on':'')+'" style="border-top-color:'+(COLOR[pron.riesgo]||'#ccc')+'">'+
-        '<div class="mt">🌤 Pronóstico día</div><div class="mv" style="color:'+(pr&&pr.riesgo?COLOR[pron.riesgo]:'#666')+'">'+(pron.indice||'—')+'</div>'+
+        '<div class="mt">🌤 Pronóstico día</div><div class="mv" style="color:'+(pron.riesgo?COLOR[pron.riesgo]:'#666')+'">'+(pron.indice||'—')+'</div>'+
         '<div class="ml" style="color:'+(pron.riesgo?COLOR[pron.riesgo]:'#666')+'">'+(pron.riesgo||'sin dato')+'</div>'+
       '</div>'+
       '<div class="mini'+(grande.label!=='Pronóstico'?' on':'')+'" style="border-top-color:'+((dia&&dia.color)||'#ccc')+'">'+
